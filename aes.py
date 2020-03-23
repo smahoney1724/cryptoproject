@@ -1,11 +1,11 @@
-plaintext = '00112233445566778899aabbccddeeff'
-key = '000102030405060708090a0b0c0d0e0f'
+plaintext = b'\x00\x11\x22\x33\x44\x55\x66\x77\x88\x99\xaa\xbb\xcc\xdd\xee\xff'
+key = b'\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f'
 Nb = 4
 Nk = 4
 Nr = 10
 blocksize = 16
 
-sub_box = (
+sub_box = [
     0x63, 0x7C, 0x77, 0x7B, 0xF2, 0x6B, 0x6F, 0xC5, 0x30, 0x01, 0x67, 0x2B, 0xFE, 0xD7, 0xAB, 0x76,
     0xCA, 0x82, 0xC9, 0x7D, 0xFA, 0x59, 0x47, 0xF0, 0xAD, 0xD4, 0xA2, 0xAF, 0x9C, 0xA4, 0x72, 0xC0,
     0xB7, 0xFD, 0x93, 0x26, 0x36, 0x3F, 0xF7, 0xCC, 0x34, 0xA5, 0xE5, 0xF1, 0x71, 0xD8, 0x31, 0x15,
@@ -22,50 +22,67 @@ sub_box = (
     0x70, 0x3E, 0xB5, 0x66, 0x48, 0x03, 0xF6, 0x0E, 0x61, 0x35, 0x57, 0xB9, 0x86, 0xC1, 0x1D, 0x9E,
     0xE1, 0xF8, 0x98, 0x11, 0x69, 0xD9, 0x8E, 0x94, 0x9B, 0x1E, 0x87, 0xE9, 0xCE, 0x55, 0x28, 0xDF,
     0x8C, 0xA1, 0x89, 0x0D, 0xBF, 0xE6, 0x42, 0x68, 0x41, 0x99, 0x2D, 0x0F, 0xB0, 0x54, 0xBB, 0x16,
-)
+]
+
+rcon = [ 0x00, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40,
+          0x80, 0x1B, 0x36, 0x6C, 0xD8, 0xAB, 0x4D, 0x9A,
+          0x2F, 0x5E, 0xBC, 0x63, 0xC6, 0x97, 0x35, 0x6A,
+          0xD4, 0xB3, 0x7D, 0xFA, 0xEF, 0xC5, 0x91, 0x39,]
 
 def main():
-    blocks = [plaintext[i:i+16] for i in range(0, len(plaintext), blocksize)]
-    print(blocks)
-    for text in blocks:
-        block = encrypt_block(text)
-        print(block)
+    print(statetransform(key))
+    print(statetransform(plaintext))
+    round_keys = KeyExpansion(key)
+    print(round_keys)
+    encrypt(plaintext,round_keys)
 
-def matrixtransform(plaintext):
-    return [list(plaintext[i:i+4]) for i in range(0, 16,4)]
+def statetransform(plaintext):
+    return [list(plaintext[i:i+4]) for i in range(0, len(plaintext),Nb)]
 
-def stringtransform(matrix):
-    return str(sum(matrix,[]))
+def stringtransform(state):
+    return str(sum(state,[]))
 
-def byte_sub(s):
-    print(s)
+def SubBytes(state):
+    print(state)
 
-def shift_rows(s):
-    print(s)
+def ShiftRows(state):
+    print(state)
 
-def mix_columns(s):
-    print(s)
+def MixColumns(state):
+    print(state)
 
-def key_expansion(key):
-    print(key)
+def KeyExpansion(key):
+    i = 0
 
-def AddRoundKey(s):
-    print(s)
+    while (i < Nk):
+        round_keys[i] = key[4*i]
 
-def encrypt_block(message):
+def AddRoundKey(state, round_key):
+    #bitwise xor each column with column from key
+    #columns
+    for i in range(4):
+        #rows
+        for j in range(4):
+            state[i][j] ^= round_key[i][j]
+
+    print(state)
+
+def encrypt(message,round_keys):
     print(message)
-    state = matrixtransform(message)
+    state = statetransform(message)
     print(state)
     #128 bits 10 rounds
     for i in range(1, 10):
         SubBytes(state)
         ShiftRows(state)
         MixColumns(state)
-        AddRoundKey(state, self._key_matrices[i])
+        #
+        AddRoundKey(state, round_keys)
 
-    byte_sub(text_matrix)
-    shift_rows(text_matrix)
-    #key_addition(text_matrix, self._key_matrices[-1])
+    SubBytes(state)
+    ShiftRows(state)
+    #
+    AddRoundKey(state, round_keys)
     return message
 
 main()
