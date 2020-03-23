@@ -1,5 +1,9 @@
 plaintext = '00112233445566778899aabbccddeeff'
 key = '000102030405060708090a0b0c0d0e0f'
+Nb = 4
+Nk = 4
+Nr = 10
+blocksize = 16
 
 sub_box = (
     0x63, 0x7C, 0x77, 0x7B, 0xF2, 0x6B, 0x6F, 0xC5, 0x30, 0x01, 0x67, 0x2B, 0xFE, 0xD7, 0xAB, 0x76,
@@ -21,19 +25,11 @@ sub_box = (
 )
 
 def main():
-    block = [0] *16
-    #columns
-    for i in range(4):
-        #row
-        for j in range(4):
-            block[(i+(j*4))] = plaintext[(i*4)+j]
-    print(block)
-    print(plaintext)
-    s = matrixtransform(plaintext)
-    byte_sub(s)
-    s = stringtransform(s)
-    byte_sub(s)
-
+    blocks = [plaintext[i:i+16] for i in range(0, len(plaintext), blocksize)]
+    print(blocks)
+    for text in blocks:
+        block = encrypt_block(text)
+        print(block)
 
 def matrixtransform(plaintext):
     return [list(plaintext[i:i+4]) for i in range(0, 16,4)]
@@ -57,10 +53,9 @@ def AddRoundKey(s):
     print(s)
 
 def encrypt_block(message):
-    bytes state = [4,4]
-
-    #add_round_key(plain_state, self._key_matrices[0])
+    print(message)
     state = matrixtransform(message)
+    print(state)
     #128 bits 10 rounds
     for i in range(1, 10):
         SubBytes(state)
