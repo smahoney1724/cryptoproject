@@ -30,7 +30,7 @@ rcon = [ 0x00, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40,
           0xD4, 0xB3, 0x7D, 0xFA, 0xEF, 0xC5, 0x91, 0x39,]
 
 def main():
-    print(statetransform(key))
+
     print(statetransform(plaintext))
     round_keys = KeyExpansion(key)
     print(round_keys)
@@ -52,11 +52,29 @@ def MixColumns(state):
     print(state)
 
 def KeyExpansion(key):
-    i = 0
+    print(statetransform(key))
+    key_matrix = statetransform(key)
 
-    while (i < Nk):
-        round_keys[i] = key[4*i]
 
+    i = Nk
+    while( i < (Nb * (Nr +1))):
+        temp = key_matrix[-1] #previous word
+        if(i % Nk == 0):
+            #rot and sub then bitwise xor with rcon table
+            temp = SubWord(RotWord(temp)) ^ rcon[i]
+            i = i+1
+        
+
+
+    return key_matrix
+
+def SubWord(word):
+    word = [sub_box[x] for x in word]
+    return word
+
+def RotWord(word):
+    #ROT
+    word.append(word.pop(0))
 def AddRoundKey(state, round_key):
     #bitwise xor each column with column from key
     #columns
@@ -66,6 +84,8 @@ def AddRoundKey(state, round_key):
             state[i][j] ^= round_key[i][j]
 
     print(state)
+
+
 
 def encrypt(message,round_keys):
     print(message)
