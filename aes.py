@@ -1,5 +1,6 @@
 plaintext = b'\x00\x11\x22\x33\x44\x55\x66\x77\x88\x99\xaa\xbb\xcc\xdd\xee\xff'
 key = b'\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f'
+test_key = b'\x2b\x7e\x15\x16\x28\xae\xd2\xa6\xab\xf7\x15\x88\x09\xcf\x4f\x3c'
 Nb = 4
 Nk = 4
 Nr = 10
@@ -21,20 +22,20 @@ sub_box = [
     0xBA, 0x78, 0x25, 0x2E, 0x1C, 0xA6, 0xB4, 0xC6, 0xE8, 0xDD, 0x74, 0x1F, 0x4B, 0xBD, 0x8B, 0x8A,
     0x70, 0x3E, 0xB5, 0x66, 0x48, 0x03, 0xF6, 0x0E, 0x61, 0x35, 0x57, 0xB9, 0x86, 0xC1, 0x1D, 0x9E,
     0xE1, 0xF8, 0x98, 0x11, 0x69, 0xD9, 0x8E, 0x94, 0x9B, 0x1E, 0x87, 0xE9, 0xCE, 0x55, 0x28, 0xDF,
-    0x8C, 0xA1, 0x89, 0x0D, 0xBF, 0xE6, 0x42, 0x68, 0x41, 0x99, 0x2D, 0x0F, 0xB0, 0x54, 0xBB, 0x16,
+    0x8C, 0xA1, 0x89, 0x0D, 0xBF, 0xE6, 0x42, 0x68, 0x41, 0x99, 0x2D, 0x0F, 0xB0, 0x54, 0xBB, 0x16
 ]
 
-rcon = [ 0x00, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40,
+rcon = [  0x00, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40,
           0x80, 0x1B, 0x36, 0x6C, 0xD8, 0xAB, 0x4D, 0x9A,
           0x2F, 0x5E, 0xBC, 0x63, 0xC6, 0x97, 0x35, 0x6A,
-          0xD4, 0xB3, 0x7D, 0xFA, 0xEF, 0xC5, 0x91, 0x39,]
+          0xD4, 0xB3, 0x7D, 0xFA, 0xEF, 0xC5, 0x91, 0x39]
 
 def main():
-
-    print(statetransform(plaintext))
-    round_keys = KeyExpansion(key)
+    print(test_key)
+    round_keys = KeyExpansion(test_key)
+    print(len(round_keys))
     print(round_keys)
-    encrypt(plaintext,round_keys)
+    #encrypt(plaintext,round_keys)
 
 def statetransform(plaintext):
     return [list(plaintext[i:i+4]) for i in range(0, len(plaintext),Nb)]
@@ -52,21 +53,29 @@ def MixColumns(state):
     print(state)
 
 def KeyExpansion(key):
-    print(statetransform(key))
     key_matrix = statetransform(key)
-
-
     i = Nk
     while( i < (Nb * (Nr +1))):
-        temp = key_matrix[-1] #previous word
+        temp = list(key_matrix[-1])  # previous word
         if(i % Nk == 0):
-            #rot and sub then bitwise xor with rcon table
-            temp = SubWord(RotWord(temp)) ^ rcon[i]
-            i = i+1
-        
-
+            # rot and sub then bitwise xor with rcon table
+            RotWord(temp)
+            temp = SubWord(temp)
+            # rcon = {x,0,0,0}
+            temp[0] ^= rcon[int(i/4)]
+        i = i + 1
+        temp = xor_word(temp, key_matrix[-4])
+        key_matrix.append(temp)
 
     return key_matrix
+
+def xor_word(word, word2):
+    temp = word
+    temp[0] = word[0] ^ word2[0]
+    temp[1] = word[1] ^ word2[1]
+    temp[2] = word[2] ^ word2[2]
+    temp[3] = word[3] ^ word2[3]
+    return temp
 
 def SubWord(word):
     word = [sub_box[x] for x in word]
@@ -75,6 +84,7 @@ def SubWord(word):
 def RotWord(word):
     #ROT
     word.append(word.pop(0))
+
 def AddRoundKey(state, round_key):
     #bitwise xor each column with column from key
     #columns
