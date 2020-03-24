@@ -1,4 +1,5 @@
 plaintext = b'\x00\x11\x22\x33\x44\x55\x66\x77\x88\x99\xaa\xbb\xcc\xdd\xee\xff'
+ciphertext = b'\x69\xc4\xe0\xd8\x6a\x7b\x04\x30\xd8\xcd\xb7\x80\x70\xb4\xc5\x5a'
 test_text = b'\x32\x43\xf6\xa8\x88\x5a\x30\x8d\x31\x31\x98\xa2\xe0\x37\x07\x34'
 key = b'\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0D\x0e\x0f'
 test_key = b'\x2b\x7e\x15\x16\x28\xae\xd2\xa6\xab\xf7\x15\x88\x09\xcf\x4f\x3c'
@@ -58,6 +59,11 @@ gfield =[[0x02,0x03,0x01,0x01],
          [0x01,0x01,0x02,0x03],
          [0x03,0x01,0x01,0x02]]
 
+gfield2 = [[0x0e,0x0b,0x0d,0x09],
+           [0x09,0x0e,0x0b,0x0d],
+           [0x0d,0x09,0x0e,0x0b],
+           [0x0b,0x0d,0x09,0x0e]]
+
 results =[[0x00,0x00,0x00,0x00],
          [0x00,0x00,0x00,0x00],
          [0x00,0x00,0x00,0x00],
@@ -65,11 +71,11 @@ results =[[0x00,0x00,0x00,0x00],
 
 def main():
     round_keys = KeyExpansion(key)
-    round_keys2 = KeyExpansion(test_key)
+
     print(len(round_keys))
     print(round_keys)
     encrypt(plaintext, round_keys)
-    decrypt(test_text, round_keys2)
+    decrypt(ciphertext, round_keys)
 
 
 def statetransform(plain):
@@ -134,16 +140,16 @@ def MixColumns(state):
     for i in range(4):
         MixColumn(state[i])
 
+def inv_Mix_Col(col2):
+    temp2 = copy(col2)
+    col2[0] = gmult(gfield2[0][0], temp2[0]) ^ gmult(gfield2[0][1], temp2[1]) ^ gmult(gfield2[0][2], temp2[2]) ^ gmult(gfield2[0][3], temp2[3])
+    col2[1] = gmult(gfield2[1][0], temp2[0]) ^ gmult(gfield2[1][1], temp2[1]) ^ gmult(gfield2[1][2], temp2[2]) ^ gmult(gfield2[1][3], temp2[3])
+    col2[2] = gmult(gfield2[2][0], temp2[0]) ^ gmult(gfield2[2][1], temp2[1]) ^ gmult(gfield2[2][2], temp2[2]) ^ gmult(gfield2[2][3], temp2[3])
+    col2[3] = gmult(gfield2[3][0], temp2[0]) ^ gmult(gfield2[3][1], temp2[1]) ^ gmult(gfield2[3][2], temp2[2]) ^ gmult(gfield2[3][3], temp2[3])
+
 def inv_MixColumns(state):
     for i in range(4):
-        u = gmult(gmult(state[i][0] ^ state[i][2]))
-        v = gmult(gmult(state[i][1] ^ state[i][3]))
-        state[i][0] ^= u
-        state[i][1] ^= v
-        state[i][2] ^= u
-        state[i][3] ^= v
-
-    MixColumn(state)
+        inv_Mix_Col(state[i])
 
 def KeyExpansion(key):
     key_matrix = statetransform(key)
@@ -192,26 +198,26 @@ def encrypt(message,round_keys):
     state = statetransform(message)
     print("Round[0] Input = {0}".format(stringtransform(state)))
     AddRoundKey(state,round_keys[0:4])
-    print("Round[0] Key Sch = {0}".format(stringtransform(round_keys[0:4])))
+    #print("Round[0] Key Sch = {0}".format(stringtransform(round_keys[0:4])))
     #128 bits 10 rounds
     for i in range(1, 10):
-        print("Round[{0}] Start state = {1}".format(i, stringtransform(state)))
+        #print("Round[{0}] Start state = {1}".format(i, stringtransform(state)))
         SubBytes(state)
-        print("Round[{0}] SubBytes state = {1}".format(i, stringtransform(state)))
+        #print("Round[{0}] SubBytes state = {1}".format(i, stringtransform(state)))
         ShiftRows(state)
-        print("Round[{0}] ShiftRows state = {1}".format(i, stringtransform(state)))
+        #print("Round[{0}] ShiftRows state = {1}".format(i, stringtransform(state)))
         MixColumns(state)
-        print("Round[{0}] MixColumns state = {1}".format(i, stringtransform(state)))
+        #print("Round[{0}] MixColumns state = {1}".format(i, stringtransform(state)))
         AddRoundKey(state, round_keys[(i*4):(i*4+4)])
-        print("Round[{0}] Key Sch = {1}".format(i, stringtransform(round_keys[(i*4):(i*4+4)])))
+        #print("Round[{0}] Key Sch = {1}".format(i, stringtransform(round_keys[(i*4):(i*4+4)])))
 
-    print("Round[{0}] Start state = {1}".format(i+1, stringtransform(state)))
+    #print("Round[{0}] Start state = {1}".format(i+1, stringtransform(state)))
     SubBytes(state)
-    print("Round[{0}] SubBytes state = {1}".format(i+1, stringtransform(state)))
+    #print("Round[{0}] SubBytes state = {1}".format(i+1, stringtransform(state)))
     ShiftRows(state)
-    print("Round[{0}] ShiftRows state = {1}".format(i+1, stringtransform(state)))
+    #print("Round[{0}] ShiftRows state = {1}".format(i+1, stringtransform(state)))
     AddRoundKey(state, round_keys[((i+1) * 4):((i+1) * 4 + 4)])
-    print("Round[{0}] Key Sch = {1}".format(i+1, stringtransform(round_keys[((i+1) * 4):((i+1) * 4 + 4)])))
+    #print("Round[{0}] Key Sch = {1}".format(i+1, stringtransform(round_keys[((i+1) * 4):((i+1) * 4 + 4)])))
     print("Round[{0}] Output = {1}".format(i + 1, stringtransform(state)))
     return message
 
@@ -220,20 +226,26 @@ def encrypt(message,round_keys):
 def decrypt(message2, round_keys):
     state = statetransform(message2)
     print("Round[0] Input = {0}".format(stringtransform(state)))
-    AddRoundKey(state, round_keys[0:4])
-    inv_ShiftRows(state)
-    inv_SubBytes(state)
+    #AddRoundKey(state, round_keys[0:4])
+    #print("Round[0] Key Sch = {0}".format(stringtransform(round_keys[0:4])))
+    #inv_ShiftRows(state)
+    #inv_SubBytes(state)
 
-    for i in range(10 , 0,-1):
-        print("Round[{0}] Start state = {1}".format(i, stringtransform(state)))
+    for i in range(10, 0, -1):
         AddRoundKey(state, round_keys[(i*4):(i*4+4)])
         print("Round[{0}] Key Sch = {1}".format(i, stringtransform(round_keys[(i * 4):(i * 4 + 4)])))
-        #inv_MixColumns(state)
-        print("Round[{0}] MixColumns state = {1}".format(i, stringtransform(state)))
-        inv_ShiftRows(state)
-        print("Round[{0}] ShiftRows state = {1}".format(i, stringtransform(state)))
+        print("Round[{0}] Start state = {1}".format(i, stringtransform(state)))
+
         inv_SubBytes(state)
         print("Round[{0}] SubBytes state = {1}".format(i, stringtransform(state)))
+        inv_ShiftRows(state)
+        print("Round[{0}] ShiftRows state = {1}".format(i, stringtransform(state)))
+        inv_MixColumns(state)
+        print("Round[{0}] MixColumns state = {1}".format(i, stringtransform(state)))
+
+    #inv_ShiftRows(state)
+    #inv_SubBytes(state)
+    #AddRoundKey(state, round_keys[(1 * 4):(1 * 4 + 4)])
     print("Round[{0}] Output = {1}".format(i + 1, stringtransform(state)))
     return state
 
