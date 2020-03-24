@@ -1,5 +1,8 @@
 plaintext = b'\x00\x11\x22\x33\x44\x55\x66\x77\x88\x99\xaa\xbb\xcc\xdd\xee\xff'
-key = b'\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f'
+text = '00112233445566778899aabbccddeeff'
+byte = bytes(bytearray.fromhex(text))
+
+key = b'\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0D\x0e\x0f'
 test_key = b'\x2b\x7e\x15\x16\x28\xae\xd2\xa6\xab\xf7\x15\x88\x09\xcf\x4f\x3c'
 Nb = 4
 Nk = 4
@@ -25,29 +28,40 @@ sub_box = [
     0x8C, 0xA1, 0x89, 0x0D, 0xBF, 0xE6, 0x42, 0x68, 0x41, 0x99, 0x2D, 0x0F, 0xB0, 0x54, 0xBB, 0x16
 ]
 
-rcon = [  0x00, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40,
+rcon =   [0x00, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40,
           0x80, 0x1B, 0x36, 0x6C, 0xD8, 0xAB, 0x4D, 0x9A,
           0x2F, 0x5E, 0xBC, 0x63, 0xC6, 0x97, 0x35, 0x6A,
           0xD4, 0xB3, 0x7D, 0xFA, 0xEF, 0xC5, 0x91, 0x39]
 
 def main():
-    print(test_key)
-    round_keys = KeyExpansion(test_key)
+    round_keys = KeyExpansion(key)
     print(len(round_keys))
     print(round_keys)
-    #encrypt(plaintext,round_keys)
+    encrypt(plaintext,round_keys)
 
 def statetransform(plaintext):
     return [list(plaintext[i:i+4]) for i in range(0, len(plaintext),Nb)]
 
 def stringtransform(state):
-    return str(sum(state,[]))
+    string = list(sum(state,[]))
+    return str(hex(string[0]) + " " + hex(string[1]) + " " + hex(string[2]) + " " + hex(string[3])
+          + " " + hex(string[4]) + " " + hex(string[5]) + " " + hex(string[6]) + " " + hex(string[7])
+          + " " + hex(string[8]) + " " + hex(string[9]) + " " + hex(string[10]) + " " + hex(string[11])
+          + " " + hex(string[12]) + " " + hex(string[13]) + " " + hex(string[14]) + " " + hex(string[15]))
 
 def SubBytes(state):
-    print(state)
+    for r in range(4):
+        for c in range(4):
+            state[r][c] = sub_box[state[r][c]]
 
 def ShiftRows(state):
-    print(state)
+    # 2nd row
+    state[0][1], state[1][1], state[2][1], state[3][1] = state[1][1], state[2][1], state[3][1], state[0][1]
+    #3rd row
+    state[0][ 2], state[1][ 2], state[2][ 2], state[3][ 2] = state[2][ 2], state[3][ 2], state[0][ 2], state[1][ 2]
+    #4th row
+    state[0][ 3], state[1][ 3], state[2][ 3], state[3][ 3] = state[3][ 3], state[0][ 3], state[1][ 3], state[2][ 3]
+
 
 def MixColumns(state):
     print(state)
@@ -93,26 +107,28 @@ def AddRoundKey(state, round_key):
         for j in range(4):
             state[i][j] ^= round_key[i][j]
 
-    print(state)
-
 
 
 def encrypt(message,round_keys):
-    print(message)
     state = statetransform(message)
-    print(state)
+    print("Round[0] Input = {0}".format(stringtransform(state)))
+    AddRoundKey(state,round_keys[0:4])
+    print("Round [0] Key Sch = {0}".format(stringtransform(round_keys[0:4])))
     #128 bits 10 rounds
     for i in range(1, 10):
         SubBytes(state)
+        print("SubBytes[{0}] state = {1}".format(i, stringtransform(state)))
         ShiftRows(state)
+        print("ShiftRows[{0}] state = {1}".format(i, stringtransform(state)))
         MixColumns(state)
+        print("MixColumns[{0}] state = {1}".format(i, stringtransform(state)))
         #
-        AddRoundKey(state, round_keys)
+        #AddRoundKey(state, round_keys)
 
     SubBytes(state)
     ShiftRows(state)
     #
-    AddRoundKey(state, round_keys)
+    #AddRoundKey(state, round_keys)
     return message
 
 main()
