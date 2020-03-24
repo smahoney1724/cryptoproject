@@ -71,9 +71,8 @@ results =[[0x00,0x00,0x00,0x00],
 
 def main():
     round_keys = KeyExpansion(key)
-
-    print(len(round_keys))
-    print(round_keys)
+    #print(len(round_keys))
+    #print(round_keys)
     encrypt(plaintext, round_keys)
     decrypt(ciphertext, round_keys)
 
@@ -226,27 +225,27 @@ def encrypt(message,round_keys):
 def decrypt(message2, round_keys):
     state = statetransform(message2)
     print("Round[0] Input = {0}".format(stringtransform(state)))
-    #AddRoundKey(state, round_keys[0:4])
-    #print("Round[0] Key Sch = {0}".format(stringtransform(round_keys[0:4])))
-    #inv_ShiftRows(state)
-    #inv_SubBytes(state)
+    AddRoundKey(state, round_keys[(10 * 4):(10 * 4 + 4)])
+    print("Round[0] Key Sch = {0}".format(stringtransform(round_keys[(10 * 4):(10 * 4 + 4)])))
 
-    for i in range(10, 0, -1):
-        AddRoundKey(state, round_keys[(i*4):(i*4+4)])
-        print("Round[{0}] Key Sch = {1}".format(i, stringtransform(round_keys[(i * 4):(i * 4 + 4)])))
-        print("Round[{0}] Start state = {1}".format(i, stringtransform(state)))
-
-        inv_SubBytes(state)
-        print("Round[{0}] SubBytes state = {1}".format(i, stringtransform(state)))
+    for i in range(9, 0, -1):
+        print("Round[{0}] Start state = {1}".format(10-i, stringtransform(state)))
         inv_ShiftRows(state)
-        print("Round[{0}] ShiftRows state = {1}".format(i, stringtransform(state)))
+        print("Round[{0}] ShiftRows state = {1}".format(10 - i, stringtransform(state)))
+        inv_SubBytes(state)
+        print("Round[{0}] SubBytes state = {1}".format(10-i, stringtransform(state)))
+        AddRoundKey(state, round_keys[(i * 4):(i * 4 + 4)])
+        print("Round[{0}] Key Sch = {1}".format(10-i, stringtransform(round_keys[(i * 4):(i * 4 + 4)])))
         inv_MixColumns(state)
-        print("Round[{0}] MixColumns state = {1}".format(i, stringtransform(state)))
+        print("Round[{0}] MixColumns state = {1}".format(10 - i, stringtransform(state)))
 
-    #inv_ShiftRows(state)
-    #inv_SubBytes(state)
-    #AddRoundKey(state, round_keys[(1 * 4):(1 * 4 + 4)])
-    print("Round[{0}] Output = {1}".format(i + 1, stringtransform(state)))
+    inv_ShiftRows(state)
+    print("Round[10] ShiftRows state = {0}".format( stringtransform(state)))
+    inv_SubBytes(state)
+    print("Round[10] SubBytes state = {0}".format( stringtransform(state)))
+    AddRoundKey(state, round_keys[(0 * 4):(0 * 4 + 4)])
+    print("Round[10] Key Sch = {0}".format( stringtransform(round_keys[(0 * 4):(0 * 4 + 4)])))
+    print("Round[10] Output = {0}".format(stringtransform(state)))
     return state
 
 
