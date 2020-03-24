@@ -195,28 +195,28 @@ def AddRoundKey(state, round_key):
 
 def encrypt(message,round_keys):
     state = statetransform(message)
-    print("Round[0] Input = {0}".format(stringtransform(state)))
+    print("\nRound[0] Input = {0}".format(stringtransform(state)))
     AddRoundKey(state,round_keys[0:4])
-    #print("Round[0] Key Sch = {0}".format(stringtransform(round_keys[0:4])))
+    print("Round[0] Key Sch = {0}".format(stringtransform(round_keys[0:4])))
     #128 bits 10 rounds
     for i in range(1, 10):
-        #print("Round[{0}] Start state = {1}".format(i, stringtransform(state)))
+        print("Round[{0}] Start state = {1}".format(i, stringtransform(state)))
         SubBytes(state)
-        #print("Round[{0}] SubBytes state = {1}".format(i, stringtransform(state)))
+        print("Round[{0}] SubBytes state = {1}".format(i, stringtransform(state)))
         ShiftRows(state)
-        #print("Round[{0}] ShiftRows state = {1}".format(i, stringtransform(state)))
+        print("Round[{0}] ShiftRows state = {1}".format(i, stringtransform(state)))
         MixColumns(state)
-        #print("Round[{0}] MixColumns state = {1}".format(i, stringtransform(state)))
+        print("Round[{0}] MixColumns state = {1}".format(i, stringtransform(state)))
         AddRoundKey(state, round_keys[(i*4):(i*4+4)])
-        #print("Round[{0}] Key Sch = {1}".format(i, stringtransform(round_keys[(i*4):(i*4+4)])))
+        print("Round[{0}] Key Sch = {1}".format(i, stringtransform(round_keys[(i*4):(i*4+4)])))
 
-    #print("Round[{0}] Start state = {1}".format(i+1, stringtransform(state)))
+    print("Round[{0}] Start state = {1}".format(i+1, stringtransform(state)))
     SubBytes(state)
-    #print("Round[{0}] SubBytes state = {1}".format(i+1, stringtransform(state)))
+    print("Round[{0}] SubBytes state = {1}".format(i+1, stringtransform(state)))
     ShiftRows(state)
-    #print("Round[{0}] ShiftRows state = {1}".format(i+1, stringtransform(state)))
+    print("Round[{0}] ShiftRows state = {1}".format(i+1, stringtransform(state)))
     AddRoundKey(state, round_keys[((i+1) * 4):((i+1) * 4 + 4)])
-    #print("Round[{0}] Key Sch = {1}".format(i+1, stringtransform(round_keys[((i+1) * 4):((i+1) * 4 + 4)])))
+    print("Round[{0}] Key Sch = {1}".format(i+1, stringtransform(round_keys[((i+1) * 4):((i+1) * 4 + 4)])))
     print("Round[{0}] Output = {1}".format(i + 1, stringtransform(state)))
     return message
 
@@ -224,7 +224,7 @@ def encrypt(message,round_keys):
 
 def decrypt(message2, round_keys):
     state = statetransform(message2)
-    print("Round[0] Input = {0}".format(stringtransform(state)))
+    print("\n\nRound[0] Input = {0}".format(stringtransform(state)))
     AddRoundKey(state, round_keys[(10 * 4):(10 * 4 + 4)])
     print("Round[0] Key Sch = {0}".format(stringtransform(round_keys[(10 * 4):(10 * 4 + 4)])))
 
