@@ -3,7 +3,9 @@ ciphertext = b'\x69\xc4\xe0\xd8\x6a\x7b\x04\x30\xd8\xcd\xb7\x80\x70\xb4\xc5\x5a'
 test_text = b'\x32\x43\xf6\xa8\x88\x5a\x30\x8d\x31\x31\x98\xa2\xe0\x37\x07\x34'
 key = b'\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0D\x0e\x0f'
 test_key = b'\x2b\x7e\x15\x16\x28\xae\xd2\xa6\xab\xf7\x15\x88\x09\xcf\x4f\x3c'
-
+enteredKey = b''
+enteredPlaintext = b''
+enteredRound_keys = b''
 key_from_assign_sheet = b'\x30\x31\x32\x33\x34\x35\x36\x37\x38\x39\x3a\x3b\x3c\x3d\x3e\x3f'
 ciphertext_from_assign_sheet = b'\xf4\x35\x15\x03\xaa\x78\x1c\x52\x02\x67\xd6\x90\xc4\x2d\x1f\x43'
 Nb = 4
@@ -73,13 +75,44 @@ results =[[0x00,0x00,0x00,0x00],
          [0x00,0x00,0x00,0x00]]
 
 def main():
-    round_keys = KeyExpansion(key)
-    #print(len(round_keys))
-    #print(round_keys)
-    encrypt(plaintext, round_keys)
-    decrypt(ciphertext, round_keys)
-    round_keys2 = KeyExpansion(key_from_assign_sheet)
-    decrypt(ciphertext_from_assign_sheet, round_keys2)
+    cont = 1;
+    while(cont == 1):
+        print("1. Encrypt Data\n2. Decrypt Data\n3. Encrypt/Decrypt for parts 1 and 2\n4. Quit\n")
+        choice = input("Enter choice:")
+        if(choice == "1"):
+            enteredPlaintext = input("Please enter your plaintext you would like to encrypt:\n")
+            enteredKey = input("Please enter your key for encryption:\n")
+
+            enteredPlaintext = bytearray.fromhex(enteredPlaintext)
+            enteredKey = bytearray.fromhex(enteredKey)
+
+            enteredRound_keys = KeyExpansion(enteredKey)
+            encrypt(enteredPlaintext, enteredRound_keys)
+            print("\n")
+        elif(choice == "2"):
+            enteredPlaintext = input("Please enter your encrypted text you would like to decrypt:\n")
+            enteredKey = input("Please enter your key for decryption:\n")
+
+            enteredPlaintext = bytearray.fromhex(enteredPlaintext)
+            enteredKey = bytearray.fromhex(enteredKey)
+
+            enteredRound_keys = KeyExpansion(enteredKey)
+            decrypt(enteredPlaintext, enteredRound_keys)
+            print("\n")
+        elif(choice == "3"):
+            print("\n\nEncryption Example from FIPS 197\n")
+            round_keys = KeyExpansion(key)
+            #print(len(round_keys))
+            #print(round_keys)
+            encrypt(plaintext, round_keys)
+            print("\n\nDecryption Example from FIPS 197\n")
+            decrypt(ciphertext, round_keys)
+            print("\n\nDecryption Example from Assignment Sheet\n")
+            round_keys2 = KeyExpansion(key_from_assign_sheet)
+            decrypt(ciphertext_from_assign_sheet, round_keys2)
+            print("\n")
+        elif(choice == "4"):
+            cont = 0
 
 
 def statetransform(plain):
